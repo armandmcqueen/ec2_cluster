@@ -1,9 +1,19 @@
 # ec2-cluster
 
+Quickly spin up EC2 instances, run commands/scripts on them, and then (optionally) automatically shut them down. Minus all the boilerplate of `boto3` and manual SSH/`pdsh` commands.
 
+```python
+with ec3.Cluster("ec3_config.yaml", instances=5) as cluster:
+    cluster.upload("perf_test.py")  # copy local file to every instance
+    results = cluster.run("python perf_test.py")
+    hostnames = [result.stdout for result in results]
 
-Simple CLI and Python library to spin up and run shell commands on clusters of EC2 instances using [`boto3`](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html) and [`fabric`](https://github.com/fabric/fabric). Multi-purpose, but created to make deep learning distributed training infrastructure easier. Also very useful for running performance tests across multiple EC2 instance types.
+# Cluster is torn down when context is exited
+```
 
+`ec3` can also be used without a context manager and then the instances won't be shut down until shutdown is manually triggered. This can be useful for long-running jobs.
+
+\
 ## Quickstart
 
 This code will launch a cluster of EC2 instances, run the command `hostname` on all of them, return the results of the command, and then tear down the cluster.
@@ -11,13 +21,14 @@ This code will launch a cluster of EC2 instances, run the command `hostname` on 
 ```python
 import ec2_cluster as ec3
 
-with ec3.infra.ConfigCluster("cluster.yaml") as cluster:
-    sh = cluster.get_shell()
-    results = sh.run_on_all("hostname")
+with ec3.Cluster("cluster.yaml") as cluster:
+    results = cluster.run("hostname")
     hostnames = [result.stdout for result in results]
 
 # Cluster is torn down when context is exited
 ```
+
+The `cluster.yaml` 
 
 ## Long-running tasks
 
